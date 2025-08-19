@@ -1,0 +1,11 @@
+services:
+  mysql:
+    container_name: 'proteus-mysql'
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=proteusdb'
+      - 'MYSQL_PASSWORD=proteus123'
+      - 'MYSQL_ROOT_PASSWORD=proteus123'
+      - 'MYSQL_USER=admin'
+    ports:
+      - '3306:3306'
