@@ -7,8 +7,6 @@ import tech.kvothe.proteus.dto.UserDto;
 import tech.kvothe.proteus.dto.RecoveryJwtTokenDto;
 import tech.kvothe.proteus.service.UserService;
 
-import java.net.URI;
-
 @RestController
 @RequestMapping("/users")
 public class UserController {
