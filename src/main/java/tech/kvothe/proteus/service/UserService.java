@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import tech.kvothe.proteus.dto.UserDto;
 import tech.kvothe.proteus.dto.RecoveryJwtTokenDto;
 import tech.kvothe.proteus.entity.User;
+import tech.kvothe.proteus.exception.EmailAlreadyLinkedException;
 import tech.kvothe.proteus.repository.UserRepository;
 import tech.kvothe.proteus.security.authentication.JwtTokenService;
 import tech.kvothe.proteus.security.config.SecurityConfiguration;
@@ -43,11 +44,20 @@ public class UserService {
 
     public void createUser(UserDto userDto) {
 
+        validateUser(userDto);
+
         User newUser = new User(
                     userDto.email(),
                     securityConfiguration.passwordEncoder().encode(userDto.password())
                     );
 
         userRepository.save(newUser);
+    }
+
+    public void validateUser(UserDto userDto){
+        var user = userRepository.findByEmail(userDto.email());
+        if (user.isPresent())
+            throw new EmailAlreadyLinkedException();
+
     }
 }

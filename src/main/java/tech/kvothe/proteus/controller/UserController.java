@@ -1,5 +1,6 @@
 package tech.kvothe.proteus.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,13 +19,13 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<RecoveryJwtTokenDto> authenticateUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<RecoveryJwtTokenDto> authenticateUser(@RequestBody @Valid UserDto userDto) {
         RecoveryJwtTokenDto token = userService.authenticateUser(userDto);
         return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Void> createUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<Void> createUser(@RequestBody @Valid UserDto userDto) {
         userService.createUser(userDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
