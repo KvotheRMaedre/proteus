@@ -1,0 +1,31 @@
+package tech.kvothe.proteus.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import tech.kvothe.proteus.dto.UserDto;
+import tech.kvothe.proteus.dto.RecoveryJwtTokenDto;
+import tech.kvothe.proteus.service.UserService;
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<RecoveryJwtTokenDto> authenticateUser(@RequestBody UserDto userDto) {
+        RecoveryJwtTokenDto token = userService.authenticateUser(userDto);
+        return new ResponseEntity<>(token, HttpStatus.OK);
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> createUser(@RequestBody UserDto userDto) {
+        userService.createUser(userDto);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+}
