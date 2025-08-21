@@ -76,19 +76,36 @@ public class ImageService {
             imagedTransformed = resize(imagedTransformed, resize.getWidth(), resize.getHeight());
         }
 
+        if (wantCrop(transformationData)){
+            var crop = transformationData.getTransformations().getCrop();
+            imagedTransformed = crop(imagedTransformed, crop.getWidth(), crop.getHeight(), crop.getX(), crop.getY());
+        }
+
         ImageIO.write(imagedTransformed,imageDB.getExtension(),new File(filePath));
     }
 
     private boolean wantResize(TransformationData transformationData) {
         if (transformationData.getTransformations().getResize() != null) {
             var resize = transformationData.getTransformations().getResize();
-            return resize.getHeight() != 0 & resize.getWidth() != 0;
+            return resize.getHeight() != 0 && resize.getWidth() != 0;
         }
         return false;
     }
 
     public  BufferedImage resize(BufferedImage img, int width, int height) {
         return Scalr.resize(img, Scalr.Method.QUALITY, width, height);
+    }
+
+    private boolean wantCrop(TransformationData transformationData) {
+        if (transformationData.getTransformations().getCrop() != null) {
+            var crop = transformationData.getTransformations().getCrop();
+            return crop.getHeight() != 0 && crop.getWidth() != 0;
+        }
+        return false;
+    }
+
+    public BufferedImage crop(BufferedImage img, int width, int height, int x, int y) {
+        return Scalr.crop(img, x, y, width, height);
     }
 
 }
