@@ -69,19 +69,23 @@ public class ImageService {
         }
 
         String filePath = DIRECTORY_PATH + user.getId() + "/" + imageDB.getFileName() + "." +imageDB.getExtension();
-        BufferedImage imagedTransformed = ImageIO.read(new File(filePath));
+        BufferedImage imageTransformed = ImageIO.read(new File(filePath));
 
         if (wantResize(transformationData)){
             var resize = transformationData.getTransformations().getResize();
-            imagedTransformed = resize(imagedTransformed, resize.getWidth(), resize.getHeight());
+            imageTransformed = resize(imageTransformed, resize.getWidth(), resize.getHeight());
         }
 
         if (wantCrop(transformationData)){
             var crop = transformationData.getTransformations().getCrop();
-            imagedTransformed = crop(imagedTransformed, crop.getWidth(), crop.getHeight(), crop.getX(), crop.getY());
+            imageTransformed = crop(imageTransformed, crop.getWidth(), crop.getHeight(), crop.getX(), crop.getY());
         }
 
-        ImageIO.write(imagedTransformed,imageDB.getExtension(),new File(filePath));
+        if (transformationData.getTransformations().getRotate() != null){
+            imageTransformed = Scalr.rotate(imageTransformed, transformationData.getTransformations().getRotate());
+        }
+
+        ImageIO.write(imageTransformed,imageDB.getExtension(),new File(filePath));
     }
 
     private boolean wantResize(TransformationData transformationData) {

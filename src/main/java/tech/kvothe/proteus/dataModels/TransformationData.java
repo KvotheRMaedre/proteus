@@ -1,5 +1,7 @@
 package tech.kvothe.proteus.dataModels;
 
+import org.imgscalr.Scalr;
+
 public class TransformationData {
 
     private Transformations transformations;
@@ -15,7 +17,7 @@ public class TransformationData {
     public static class Transformations {
         private Resize resize;
         private Crop crop;
-        private Integer rotate;
+        private Scalr.Rotation rotate;
         private String format;
         private Filters filters;
 
@@ -35,11 +37,11 @@ public class TransformationData {
             this.crop = crop;
         }
 
-        public Integer getRotate() {
+        public Scalr.Rotation getRotate() {
             return rotate;
         }
 
-        public void setRotate(Integer rotate) {
+        public void setRotate(Scalr.Rotation rotate) {
             this.rotate = rotate;
         }
 
