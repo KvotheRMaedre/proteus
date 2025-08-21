@@ -13,6 +13,11 @@ import tech.kvothe.proteus.security.authentication.JwtTokenService;
 import tech.kvothe.proteus.security.config.SecurityConfiguration;
 import tech.kvothe.proteus.security.userdetails.UserDetailsImpl;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @Service
 public class UserService {
 
@@ -20,6 +25,8 @@ public class UserService {
     private final JwtTokenService jwtTokenService;
     private final UserRepository userRepository;
     private final SecurityConfiguration securityConfiguration;
+
+    private static final String DIRECTORY_PATH = "./uploads/";
 
     public UserService(AuthenticationManager authenticationManager,
                        JwtTokenService jwtTokenService,
@@ -42,7 +49,7 @@ public class UserService {
         return new RecoveryJwtTokenDto(jwtTokenService.generateToken(userDetails));
     }
 
-    public void createUser(UserDto userDto) {
+    public void createUser(UserDto userDto) throws IOException {
 
         validateUser(userDto);
 
@@ -52,6 +59,15 @@ public class UserService {
                     );
 
         userRepository.save(newUser);
+        createFolderForUploads(newUser);
+    }
+
+    private void createFolderForUploads(User newUser) throws IOException {
+        // It's not the objective of this project to implement the actual upload system to the cloud
+        // or something like that, so I'm just using the local directory to be fast.
+
+        Path folderPath = Paths.get( DIRECTORY_PATH + newUser.getId());
+        Files.createDirectories(folderPath);
     }
 
     public void validateUser(UserDto userDto){

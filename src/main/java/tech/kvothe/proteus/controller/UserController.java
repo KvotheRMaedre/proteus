@@ -7,6 +7,8 @@ import tech.kvothe.proteus.dto.UserDto;
 import tech.kvothe.proteus.dto.RecoveryJwtTokenDto;
 import tech.kvothe.proteus.service.UserService;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -24,7 +26,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createUser(@RequestBody @Valid UserDto userDto) {
+    public ResponseEntity<Void> createUser(@RequestBody @Valid UserDto userDto) throws IOException {
         userService.createUser(userDto);
         return ResponseEntity.ok().build();
     }
