@@ -14,7 +14,7 @@ import java.time.ZonedDateTime;
 @Service
 public class JwtTokenService {
 
-    private static final String SECRET_KEY = "${JWT_SECRET_KEY}";
+    private static final String SECRET_KEY = System.getenv("JWT_SECRET_KEY");
 
     private static final String ISSUER = "proteus";
 
