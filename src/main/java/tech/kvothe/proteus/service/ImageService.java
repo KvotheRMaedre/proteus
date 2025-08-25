@@ -60,6 +60,25 @@ public class ImageService {
 
     }
 
+    public void saveTransformedImage(BufferedImage image, String userEmail, String extension, String fileName) throws IOException {
+
+        var user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        File thumbnailFile = new File(DIRECTORY_PATH + user.getId() + "/" + fileName + "." + extension);
+        ImageIO.write(image, extension, thumbnailFile);
+
+        var savedImage = new Image(
+                user,
+                Instant.now(),
+                extension,
+                fileName
+        );
+
+        imageRepository.save(savedImage);
+
+    }
+
     public void transformImage(TransformationData transformationData, Long imageId, String userEmail) throws IOException {
 
         var imageDB = imageRepository.findById(imageId)
@@ -104,8 +123,11 @@ public class ImageService {
             imageTransformed = applySepia(imageTransformed);
         }
 
-        String transformedFilePath = DIRECTORY_PATH + user.getId() + "/" + imageDB.getFileName() + "-transformed." + extesionToSave;
+        var newName = imageDB.getFileName() + "-transformed";
+        String transformedFilePath = DIRECTORY_PATH + user.getId() + "/" + newName + "." + extesionToSave;
+
         ImageIO.write(imageTransformed, extesionToSave, new File(transformedFilePath));
+        saveTransformedImage(imageTransformed, userEmail, extesionToSave, newName);
 
     }
 
