@@ -123,6 +123,10 @@ public class ImageService {
             imageTransformed = applySepia(imageTransformed);
         }
 
+        if (transformationData.getTransformations().getFilters().getAntialias()) {
+            imageTransformed = Scalr.apply(imageTransformed, Scalr.OP_ANTIALIAS);
+        }
+
         var newName = imageDB.getFileName() + "-transformed";
         String transformedFilePath = DIRECTORY_PATH + user.getId() + "/" + newName + "." + extesionToSave;
 
