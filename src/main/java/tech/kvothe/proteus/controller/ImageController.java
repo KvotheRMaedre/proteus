@@ -1,7 +1,5 @@
 package tech.kvothe.proteus.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -44,7 +42,7 @@ public class ImageController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
 
-        imageService.transformImage(transformationData, imageId, currentPrincipalName);
+        imageService.addToQueue(transformationData, imageId, currentPrincipalName);
 
         return null;
     }

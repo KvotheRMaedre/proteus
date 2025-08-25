@@ -1,5 +1,7 @@
 package tech.kvothe.proteus.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.imgscalr.Scalr;
@@ -14,6 +16,7 @@ import tech.kvothe.proteus.exception.ImageFormatNotAvailableException;
 import tech.kvothe.proteus.exception.NotAuthorizedImageTransformationException;
 import tech.kvothe.proteus.repository.ImageRepository;
 import tech.kvothe.proteus.repository.UserRepository;
+import tech.kvothe.proteus.wrapper.ImageRabbitWrapper;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -32,7 +35,7 @@ public class ImageService {
     private static final String DIRECTORY_PATH = System.getenv("UPLOAD_DIRECTORY");
     public static final String[] allowedFormat = {"JPG", "JPEG", "PNG", "BMP", "WBMP" , "GIF"};
 
-    public ImageService(ImageRepository imageRepository, UserRepository userRepository) {
+    public ImageService(ImageRepository imageRepository, UserRepository userRepository, RabbitMqService rabbitMqService) {
         this.imageRepository = imageRepository;
         this.userRepository = userRepository;
     }
@@ -77,6 +80,28 @@ public class ImageService {
 
         imageRepository.save(savedImage);
 
+    }
+
+    public void addToQueue(TransformationData transformationData, Long imageId, String userEmail) throws JsonProcessingException {
+        String message = transformationToJson(transformationData, imageId, userEmail);
+        RabbitMqService.sendMessage(message);
+    }
+
+    private static String transformationToJson(TransformationData transformationData, Long imageId, String userEmail) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        var transformations = transformationData.getTransformations();
+
+        var dataWrapper = new ImageRabbitWrapper(
+                transformations.getResize(),
+                transformations.getCrop(),
+                transformations.getRotate(),
+                transformations.getFormat(),
+                transformations.getFilters(),
+                imageId,
+                userEmail
+        );
+
+        return objectMapper.writeValueAsString(dataWrapper);
     }
 
     public void transformImage(TransformationData transformationData, Long imageId, String userEmail) throws IOException {
