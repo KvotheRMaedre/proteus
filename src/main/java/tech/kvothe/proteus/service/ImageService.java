@@ -1,6 +1,7 @@
 package tech.kvothe.proteus.service;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.imgscalr.Scalr;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.HtmlUtils;
 import tech.kvothe.proteus.dataModels.TransformationData;
 import tech.kvothe.proteus.entity.Image;
+import tech.kvothe.proteus.exception.ImageFormatNotAvailableException;
 import tech.kvothe.proteus.exception.NotAuthorizedImageTransformationException;
 import tech.kvothe.proteus.repository.ImageRepository;
 import tech.kvothe.proteus.repository.UserRepository;
@@ -18,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Objects;
 
 @Service
@@ -27,6 +30,7 @@ public class ImageService {
     private final UserRepository userRepository;
 
     private static final String DIRECTORY_PATH = System.getenv("UPLOAD_DIRECTORY");
+    public static final String[] allowedFormat = {"JPG", "JPEG", "PNG", "BMP", "WBMP" , "GIF"};
 
     public ImageService(ImageRepository imageRepository, UserRepository userRepository) {
         this.imageRepository = imageRepository;
@@ -69,6 +73,7 @@ public class ImageService {
         }
 
         String filePath = DIRECTORY_PATH + user.getId() + "/" + imageDB.getFileName() + "." +imageDB.getExtension();
+        var extesionToSave = imageDB.getExtension();
         BufferedImage imageTransformed = ImageIO.read(new File(filePath));
 
         if (wantResize(transformationData)){
@@ -85,7 +90,22 @@ public class ImageService {
             imageTransformed = Scalr.rotate(imageTransformed, transformationData.getTransformations().getRotate());
         }
 
-        ImageIO.write(imageTransformed,imageDB.getExtension(),new File(filePath));
+        if (validateFormat(transformationData)) {
+            extesionToSave = transformationData.getTransformations().getFormat().toLowerCase();
+        } else {
+            throw new ImageFormatNotAvailableException("Formats supported:"+ StringUtils.join(allowedFormat));
+        }
+        String transformedFilePath = DIRECTORY_PATH + user.getId() + "/" + imageDB.getFileName() + "-transformed." + extesionToSave;
+        ImageIO.write(imageTransformed, extesionToSave, new File(transformedFilePath));
+
+    }
+
+    private boolean validateFormat(TransformationData transformationData) {
+        if (transformationData.getTransformations().getFormat() != null) {
+            var format = transformationData.getTransformations().getFormat();
+            return Arrays.asList(allowedFormat).contains(format.toUpperCase());
+        }
+        return false;
     }
 
     private boolean wantResize(TransformationData transformationData) {
