@@ -95,6 +95,15 @@ public class ImageService {
         } else {
             throw new ImageFormatNotAvailableException("Formats supported:"+ StringUtils.join(allowedFormat));
         }
+
+        if (transformationData.getTransformations().getFilters().getGrayscale()) {
+            imageTransformed = Scalr.apply(imageTransformed, Scalr.OP_GRAYSCALE);
+        }
+
+        if (transformationData.getTransformations().getFilters().getSepia()) {
+            imageTransformed = applySepia(imageTransformed);
+        }
+
         String transformedFilePath = DIRECTORY_PATH + user.getId() + "/" + imageDB.getFileName() + "-transformed." + extesionToSave;
         ImageIO.write(imageTransformed, extesionToSave, new File(transformedFilePath));
 
@@ -130,6 +139,51 @@ public class ImageService {
 
     public BufferedImage crop(BufferedImage img, int width, int height, int x, int y) {
         return Scalr.crop(img, x, y, width, height);
+    }
+
+    public BufferedImage applySepia(BufferedImage image)
+    {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int originalRGB = image.getRGB(x, y);
+
+                int a = (originalRGB >> 24) & 0xff;
+                int R = (originalRGB >> 16) & 0xff;
+                int G = (originalRGB >> 8) & 0xff;
+                int B = originalRGB & 0xff;
+
+                // calculate newRed, newGreen, newBlue
+                int newRed = (int) (0.393 * R + 0.769 * G
+                        + 0.189 * B);
+                int newGreen = (int) (0.349 * R + 0.686 * G
+                        + 0.168 * B);
+                int newBlue = (int) (0.272 * R + 0.534 * G
+                        + 0.131 * B);
+
+                if (newRed > 255)
+                    R = 255;
+                else
+                    R = newRed;
+
+                if (newGreen > 255)
+                    G = 255;
+                else
+                    G = newGreen;
+
+                if (newBlue > 255)
+                    B = 255;
+                else
+                    B = newBlue;
+
+                int newRGB = (a << 24) | (R << 16) | (G << 8) | B;
+
+                image.setRGB(x, y, newRGB);
+            }
+        }
+        return image;
     }
 
 }
