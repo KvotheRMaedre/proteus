@@ -117,7 +117,7 @@ public class ImageService {
         }
 
         String filePath = DIRECTORY_PATH + user.getId() + "/" + imageDB.getFileName() + "." +imageDB.getExtension();
-        var extesionToSave = imageDB.getExtension();
+        var extensionToSave = imageDB.getExtension();
         BufferedImage imageTransformed = ImageIO.read(new File(filePath));
 
         if (wantResize(transformationData)){
@@ -135,7 +135,7 @@ public class ImageService {
         }
 
         if (validateFormat(transformationData)) {
-            extesionToSave = transformationData.getTransformations().getFormat().toLowerCase();
+            extensionToSave = transformationData.getTransformations().getFormat().toLowerCase();
         } else {
             throw new ImageFormatNotAvailableException("Formats supported:"+ StringUtils.join(allowedFormat));
         }
@@ -153,10 +153,10 @@ public class ImageService {
         }
 
         var newName = imageDB.getFileName() + "-transformed";
-        String transformedFilePath = DIRECTORY_PATH + user.getId() + "/" + newName + "." + extesionToSave;
+        String transformedFilePath = DIRECTORY_PATH + user.getId() + "/" + newName + "." + extensionToSave;
 
-        ImageIO.write(imageTransformed, extesionToSave, new File(transformedFilePath));
-        saveTransformedImage(imageTransformed, userEmail, extesionToSave, newName);
+        ImageIO.write(imageTransformed, extensionToSave, new File(transformedFilePath));
+        saveTransformedImage(imageTransformed, userEmail, extensionToSave, newName);
 
     }
 
@@ -237,4 +237,13 @@ public class ImageService {
         return image;
     }
 
+    public BufferedImage findImageById(Long imageId) throws IOException {
+        var imageDB = imageRepository.findById(imageId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        String filePath = DIRECTORY_PATH + imageDB.getUser().getId() + "/" + imageDB.getFileName() + "." +imageDB.getExtension();
+        var extensionToSave = imageDB.getExtension();
+        return ImageIO.read(new File(filePath));
+
+    }
 }

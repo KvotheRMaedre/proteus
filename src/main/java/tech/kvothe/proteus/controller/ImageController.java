@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tech.kvothe.proteus.dataModels.TransformationData;
 import tech.kvothe.proteus.service.ImageService;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 
@@ -44,6 +45,12 @@ public class ImageController {
 
         imageService.addToQueue(transformationData, imageId, currentPrincipalName);
 
-        return null;
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{imageId}")
+    public ResponseEntity<BufferedImage> getImage(@PathVariable Long imageId) throws IOException {
+        var image = imageService.findImageById(imageId);
+        return ResponseEntity.ok(image);
     }
 }
