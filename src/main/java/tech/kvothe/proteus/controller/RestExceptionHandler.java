@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import tech.kvothe.proteus.exception.ProteusException;
 
+import javax.imageio.IIOException;
+
 @RestControllerAdvice
 public class RestExceptionHandler {
 
@@ -46,6 +48,15 @@ public class RestExceptionHandler {
         var problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle("Parse error");
         problemDetail.setDetail(httpMessageNotReadableException.getMessage());
+
+        return problemDetail;
+    }
+
+    @ExceptionHandler(IIOException.class)
+    public ProblemDetail handleIIOException(IIOException iIOException){
+        var problemDetail = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        problemDetail.setTitle("Internal Server Error");
+        problemDetail.setDetail(iIOException.getMessage());
 
         return problemDetail;
     }
