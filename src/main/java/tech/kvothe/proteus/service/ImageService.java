@@ -5,12 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.imgscalr.Scalr;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.HtmlUtils;
 import tech.kvothe.proteus.dataModels.TransformationData;
+import tech.kvothe.proteus.dto.ImageResponse;
 import tech.kvothe.proteus.entity.Image;
 import tech.kvothe.proteus.exception.ImageFormatNotAvailableException;
 import tech.kvothe.proteus.exception.NotAuthorizedImageTransformationException;
@@ -245,5 +248,10 @@ public class ImageService {
         var extensionToSave = imageDB.getExtension();
         return ImageIO.read(new File(filePath));
 
+    }
+
+    public Page<ImageResponse> findAllImages(PageRequest pageRequest) {
+        var images = imageRepository.findAll(pageRequest);
+        return images.map(ImageResponse::fromEntity);
     }
 }
