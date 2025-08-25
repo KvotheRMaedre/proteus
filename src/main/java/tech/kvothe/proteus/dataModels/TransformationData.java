@@ -125,6 +125,15 @@ public class TransformationData {
     public static class Filters {
         private Boolean grayscale;
         private Boolean sepia;
+        private Boolean antialias;
+
+        public Boolean getAntialias() {
+            return antialias;
+        }
+
+        public void setAntialias(Boolean antialias) {
+            this.antialias = antialias;
+        }
 
         public Boolean getGrayscale() {
             return grayscale;
