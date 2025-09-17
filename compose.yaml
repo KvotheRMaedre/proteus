@@ -16,3 +16,21 @@ services:
     ports:
       - '15672:15672'
       - '5672:5672'
+
+  minio:
+    container_name: minio
+    image: quay.io/minio/minio:RELEASE.2025-03-12T18-04-18Z
+    ports:
+      - "9000:9000" # MinIO API port
+      - "9001:9001" # MinIO Console port
+    environment:
+      MINIO_ROOT_USER: admin # Change this
+      MINIO_ROOT_PASSWORD: admin123 # Change this
+      MINIO_DEFAULT_BUCKETS: images
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+volumes:
+  minio_data:
+    driver: local
