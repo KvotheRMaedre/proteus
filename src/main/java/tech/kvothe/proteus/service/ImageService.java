@@ -2,7 +2,11 @@ package tech.kvothe.proteus.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.imgscalr.Scalr;
 import org.springframework.data.domain.Page;
@@ -25,6 +29,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
@@ -34,13 +39,56 @@ public class ImageService {
 
     private final ImageRepository imageRepository;
     private final UserRepository userRepository;
+    private final MinioClient minioClient;
 
     private static final String DIRECTORY_PATH = System.getenv("UPLOAD_DIRECTORY");
     public static final String[] allowedFormat = {"JPG", "JPEG", "PNG", "BMP", "WBMP" , "GIF"};
 
-    public ImageService(ImageRepository imageRepository, UserRepository userRepository, RabbitMqService rabbitMqService) {
+    public ImageService(ImageRepository imageRepository, UserRepository userRepository, RabbitMqService rabbitMqService, MinioClient minioClient) {
         this.imageRepository = imageRepository;
         this.userRepository = userRepository;
+        this.minioClient = minioClient;
+    }
+
+    public void saveImageMinio(InputStream inputStream, MultipartFile multipartFile, String userEmail) throws Exception {
+
+        var user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        BufferedImage originalImage = ImageIO.read(multipartFile.getInputStream());
+        String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
+        String originalName = FilenameUtils.getBaseName(HtmlUtils.htmlEscape(multipartFile.getOriginalFilename()));
+
+        File thumbnailFile = new File(DIRECTORY_PATH + user.getId() + "/" + originalName + "." + extension);
+        ImageIO.write(originalImage, extension, thumbnailFile);
+
+        var image = new Image(
+                user,
+                Instant.now(),
+                extension,
+                originalName
+        );
+
+        var imageSaved = imageRepository.save(image);
+
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket("images")
+                        .object(imageSaved.getId().toString())
+                        .stream(inputStream, inputStream.available(), -1)
+                        .contentType("image/" + extension)
+                        .build()
+        );
+    }
+
+    public byte[] getImageMinio(Long id) throws Exception{
+        var stream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket("images")
+                        .object(id.toString())
+                        .build()
+        );
+        return IOUtils.toByteArray(stream);
     }
 
     public void saveImage(MultipartFile multipartFile, String userEmail) throws IOException {

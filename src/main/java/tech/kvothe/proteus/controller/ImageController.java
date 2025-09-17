@@ -2,6 +2,7 @@ package tech.kvothe.proteus.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,8 @@ import tech.kvothe.proteus.service.ImageService;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 
 @RestController
@@ -22,20 +25,37 @@ import java.io.IOException;
 public class ImageController {
 
     private final ImageService imageService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ImageController(ImageService imageService) {
         this.imageService = imageService;
     }
 
+    @PostMapping("/minio")
+    public ResponseEntity<Void> uploadImageMinio(@RequestHeader("Authorization") String token,
+                                            @RequestParam("file") MultipartFile multipartFile) throws Exception {
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        imageService.saveImageMinio(multipartFile.getInputStream(), multipartFile, userName);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "/minio/{imageId}", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getMinio(@RequestHeader("Authorization") String token,
+                                           @PathVariable("imageId") Long imageId) throws Exception {
+        var image = imageService.getImageMinio(imageId);
+
+        return ResponseEntity.ok(image);
+    }
+
     @PostMapping
     public ResponseEntity<Void> uploadImage(@RequestHeader("Authorization") String token,
                                             @RequestParam("file") MultipartFile multipartFile) throws IOException {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentPrincipalName = authentication.getName();
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        imageService.saveImage(multipartFile, currentPrincipalName);
+        imageService.saveImage(multipartFile, userName);
         return ResponseEntity.ok().build();
     }
 
